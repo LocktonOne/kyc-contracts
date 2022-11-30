@@ -11,6 +11,10 @@ import "@tokene/core-contracts/core/ReviewableRequests.sol";
 import "../interfaces/kyc-requests/IKYCRequests.sol";
 
 contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
+    string public constant UPDATE_PERMISSION = "UPDATE";
+
+    string public constant KYC_REQUESTS_RESOURCE = "KYC_REQUESTS_RESOURCE";
+
     string public constant KYC_REQUESTS_DEP = "KYC_REQUESTS";
 
     string public override KYCRole;
@@ -20,10 +24,16 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
 
     mapping(address => UserRequestInfo) public override usersRequestInfo;
 
-    function __KYCRequests_init(string calldata KYCRole_) external override initializer {
-        require(bytes(KYCRole_).length > 0, "KYCRequests: empty KYC role");
+    modifier onlyUpdtaePermission() {
+        require(
+            _masterAccess.hasPermission(msg.sender, KYC_REQUESTS_RESOURCE, UPDATE_PERMISSION),
+            "KYCRequests: access denied"
+        );
+        _;
+    }
 
-        KYCRole = KYCRole_;
+    function __KYCRequests_init(string calldata KYCRole_) external override initializer {
+        _updateKYCRole(KYCRole_);
     }
 
     function setDependencies(address registryAddress_) public override dependant {
@@ -33,13 +43,16 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
         _reviewableRequests = ReviewableRequests(registry_.getReviewableRequests());
     }
 
+    function updateKYCRole(string calldata newKYCRole_) external onlyUpdtaePermission {
+        _updateKYCRole(newKYCRole_);
+    }
+
     function requestKYCRole(string calldata KYCHash_) external override {
         UserRequestInfo storage requestInfo = usersRequestInfo[msg.sender];
 
         if (requestInfo.existingRequest) {
             require(
-                _getRequestStatus(requestInfo.requestId) !=
-                    (IReviewableRequests.RequestStatus.PENDING),
+                !_isPendingReqest(requestInfo.requestId),
                 "KYCRequests: user has a pending request"
             );
         } else {
@@ -66,8 +79,7 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
 
         require(requestInfo_.existingRequest, "KYCRequests: user has no request");
         require(
-            _getRequestStatus(requestInfo_.requestId) ==
-                (IReviewableRequests.RequestStatus.PENDING),
+            _isPendingReqest(requestInfo_.requestId),
             "KYCRequests: user has no pending request"
         );
 
@@ -76,13 +88,19 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
         emit KYCRequestDropped(msg.sender, requestInfo_.requestId);
     }
 
-    function _getRequestStatus(
-        uint256 requestId_
-    ) internal view returns (IReviewableRequests.RequestStatus) {
+    function _updateKYCRole(string calldata newKYCRole_) internal {
+        require(bytes(newKYCRole_).length > 0, "KYCRequests: empty KYC role");
+
+        KYCRole = newKYCRole_;
+
+        emit KYCRoleUpdated(newKYCRole_);
+    }
+
+    function _isPendingReqest(uint256 requestId_) internal view returns (bool) {
         (IReviewableRequests.RequestStatus requestStatus_, , , , ) = _reviewableRequests.requests(
             requestId_
         );
 
-        return requestStatus_;
+        return requestStatus_ == IReviewableRequests.RequestStatus.PENDING;
     }
 }

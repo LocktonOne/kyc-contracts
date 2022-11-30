@@ -7,10 +7,13 @@ interface IKYCRequests {
         bool existingRequest;
     }
 
+    event KYCRoleUpdated(string newKYCRole);
     event KYCRoleRequested(address userAddr, uint256 requestId);
     event KYCRequestDropped(address userAddr, uint256 requestId);
 
     function __KYCRequests_init(string calldata KYCRole_) external;
+
+    function updateKYCRole(string calldata newKYCRole_) external;
 
     function requestKYCRole(string calldata KYCHash_) external;
 

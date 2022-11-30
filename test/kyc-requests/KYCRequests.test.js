@@ -2,8 +2,10 @@ const { accounts, toBN } = require("../../scripts/utils/utils");
 const {
   CREATE_PERMISSION,
   DELETE_PERMISSION,
+  UPDATE_PERMISSION,
   RBAC_RESOURCE,
   REVIEWABLE_REQUESTS_RESOURCE,
+  KYC_REQUESTS_RESOURCE,
   KYC_REQUESTS_DEP,
   RequestStatus,
 } = require("../utils/constants");
@@ -22,14 +24,17 @@ describe("KYCRequests", async () => {
 
   let OWNER;
   let USER1;
+  let USER2;
 
   const ReviewableRequestsRole = "RR";
   const ReviewableRequestsRBACRole = "RRRBACR";
+  const KYCRequestsUpdateRole = "KYCU";
 
   const KYCRole = "KYCR";
 
   const ReviewableRequestsCreate = [REVIEWABLE_REQUESTS_RESOURCE, [CREATE_PERMISSION, DELETE_PERMISSION]];
   const ReviewableRequestsRBACCreate = [RBAC_RESOURCE, [CREATE_PERMISSION]];
+  const KYCRequestsUpdate = [KYC_REQUESTS_RESOURCE, [UPDATE_PERMISSION]];
 
   let registry;
   let masterAccess;
@@ -39,6 +44,7 @@ describe("KYCRequests", async () => {
   before("setup", async () => {
     OWNER = await accounts(0);
     USER1 = await accounts(1);
+    USER2 = await accounts(2);
 
     registry = await MasterContractsRegistry.new();
 
@@ -68,6 +74,9 @@ describe("KYCRequests", async () => {
     await masterAccess.addPermissionsToRole(ReviewableRequestsRole, [ReviewableRequestsCreate], true);
     await masterAccess.grantRoles(kycRequests.address, [ReviewableRequestsRole]);
 
+    await masterAccess.addPermissionsToRole(KYCRequestsUpdateRole, [KYCRequestsUpdate], true);
+    await masterAccess.grantRoles(USER1, [KYCRequestsUpdateRole]);
+
     await reverter.snapshot();
   });
 
@@ -91,6 +100,25 @@ describe("KYCRequests", async () => {
       const reason = "Dependant: Not an injector";
 
       await truffleAssert.reverts(kycRequests.setDependencies(registry.address, { from: USER1 }), reason);
+    });
+  });
+
+  describe("updateKYCRole", () => {
+    const newKYCRole = "new KYC role";
+
+    it("should correctly update KYC role", async () => {
+      const tx = await kycRequests.updateKYCRole(newKYCRole, { from: USER1 });
+
+      assert.equal(await kycRequests.KYCRole(), newKYCRole);
+
+      assert.equal(tx.receipt.logs[0].event, "KYCRoleUpdated");
+      assert.equal(tx.receipt.logs[0].args.newKYCRole, newKYCRole);
+    });
+
+    it("should get exception if user without permission try to call this function", async () => {
+      const reason = "KYCRequests: access denied";
+
+      await truffleAssert.reverts(kycRequests.updateKYCRole(newKYCRole, { from: USER2 }), reason);
     });
   });
 
@@ -119,7 +147,7 @@ describe("KYCRequests", async () => {
       await reviewableRequests.acceptRequest(0);
 
       assert.equal((await reviewableRequests.requests(0)).status, RequestStatus.ACCEPTED);
-      assert.deepEqual(await masterAccess.getUserRoles(USER1), [KYCRole]);
+      assert.deepEqual(await masterAccess.getUserRoles(USER1), [KYCRequestsUpdateRole, KYCRole]);
     });
 
     it("should correctly create request after accepted, rejected or dropped request", async () => {
