@@ -6,10 +6,8 @@ const KYCRequests = artifacts.require("KYCRequests");
 
 module.exports = async (deployer) => {
   const registry = await Registry.at(deployer.masterContractsRegistry);
-
-  logTransaction(await registry.injectDependencies(KYC_REQUESTS_DEP), "Set dependencies at KYCRequests");
-
   const kycRequests = await KYCRequests.at(await registry.getContract(KYC_REQUESTS_DEP));
+
   const kycRole = process.env.KYC_ROLE;
 
   if (kycRole == undefined || kycRole == "") {
@@ -17,4 +15,6 @@ module.exports = async (deployer) => {
   }
 
   logTransaction(await kycRequests.__KYCRequests_init(kycRole), "Init KYCRequests");
+
+  logTransaction(await registry.injectDependencies(KYC_REQUESTS_DEP), "Set dependencies at KYCRequests");
 };

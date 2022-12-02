@@ -24,7 +24,7 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
 
     mapping(address => UserRequestInfo) public override usersRequestInfo;
 
-    modifier onlyUpdtaePermission() {
+    modifier onlyUpdatePermission() {
         require(
             _masterAccess.hasPermission(msg.sender, KYC_REQUESTS_RESOURCE, UPDATE_PERMISSION),
             "KYCRequests: access denied"
@@ -43,7 +43,7 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
         _reviewableRequests = ReviewableRequests(registry_.getReviewableRequests());
     }
 
-    function updateKYCRole(string calldata newKYCRole_) external onlyUpdtaePermission {
+    function updateKYCRole(string calldata newKYCRole_) external onlyUpdatePermission {
         _updateKYCRole(newKYCRole_);
     }
 
@@ -53,7 +53,7 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
         if (requestInfo.existingRequest) {
             require(
                 !_isPendingReqest(requestInfo.requestId),
-                "KYCRequests: user has a pending request"
+                "KYCRequests: user has a pending requests"
             );
         } else {
             requestInfo.existingRequest = true;
@@ -80,7 +80,7 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
         require(requestInfo_.existingRequest, "KYCRequests: user has no request");
         require(
             _isPendingReqest(requestInfo_.requestId),
-            "KYCRequests: user has no pending request"
+            "KYCRequests: user has no pending requests"
         );
 
         _reviewableRequests.dropRequest(requestInfo_.requestId);

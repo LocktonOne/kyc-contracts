@@ -179,7 +179,7 @@ describe("KYCRequests", async () => {
     });
 
     it("should get exception if user has a pending request", async () => {
-      const reason = "KYCRequests: user has a pending request";
+      const reason = "KYCRequests: user has a pending requests";
 
       await kycRequests.requestKYCRole(kycHash, { from: USER1 });
 
@@ -212,7 +212,7 @@ describe("KYCRequests", async () => {
       await kycRequests.requestKYCRole(kycHash, { from: USER1 });
       await reviewableRequests.acceptRequest(0);
 
-      const reason = "KYCRequests: user has no pending request";
+      const reason = "KYCRequests: user has no pending requests";
 
       await truffleAssert.reverts(kycRequests.dropKYCRequest({ from: USER1 }), reason);
     });
