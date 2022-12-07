@@ -122,7 +122,7 @@ describe("KYCRequests", async () => {
     });
   });
 
-  describe("requestKYCRole", () => {
+  describe("requestKYC", () => {
     const kycHash = "some hash";
 
     it("should correctly request KYC role", async () => {
@@ -130,7 +130,7 @@ describe("KYCRequests", async () => {
       assert.equal(userRequestInfo.requestId.toString(), 0);
       assert.equal(userRequestInfo.existingRequest, false);
 
-      const tx = await kycRequests.requestKYCRole(kycHash, { from: USER1 });
+      const tx = await kycRequests.requestKYC(kycHash, { from: USER1 });
 
       userRequestInfo = await kycRequests.usersRequestInfo(USER1);
       assert.equal(userRequestInfo.requestId.toString(), 0);
@@ -142,7 +142,11 @@ describe("KYCRequests", async () => {
     });
 
     it("should correctly accept request and grant role", async () => {
-      await kycRequests.requestKYCRole(kycHash, { from: USER1 });
+      await kycRequests.requestKYC(kycHash, { from: USER1 });
+
+      const request = await reviewableRequests.requests(0);
+
+      assert.equal(request.misc, USER1.toLowerCase());
 
       await reviewableRequests.acceptRequest(0);
 
@@ -151,7 +155,7 @@ describe("KYCRequests", async () => {
     });
 
     it("should correctly create request after accepted, rejected or dropped request", async () => {
-      await kycRequests.requestKYCRole(kycHash, { from: USER1 });
+      await kycRequests.requestKYC(kycHash, { from: USER1 });
 
       assert.equal((await reviewableRequests.requests(0)).status, RequestStatus.PENDING);
 
@@ -159,7 +163,7 @@ describe("KYCRequests", async () => {
 
       assert.equal((await reviewableRequests.requests(0)).status, RequestStatus.REJECTED);
 
-      await kycRequests.requestKYCRole(kycHash, { from: USER1 });
+      await kycRequests.requestKYC(kycHash, { from: USER1 });
 
       assert.equal((await reviewableRequests.requests(1)).status, RequestStatus.PENDING);
 
@@ -167,7 +171,7 @@ describe("KYCRequests", async () => {
 
       assert.equal((await reviewableRequests.requests(1)).status, RequestStatus.DROPPED);
 
-      await kycRequests.requestKYCRole(kycHash, { from: USER1 });
+      await kycRequests.requestKYC(kycHash, { from: USER1 });
 
       assert.equal((await reviewableRequests.requests(2)).status, RequestStatus.PENDING);
 
@@ -175,15 +179,15 @@ describe("KYCRequests", async () => {
 
       assert.equal((await reviewableRequests.requests(2)).status, RequestStatus.ACCEPTED);
 
-      await kycRequests.requestKYCRole(kycHash, { from: USER1 });
+      await kycRequests.requestKYC(kycHash, { from: USER1 });
     });
 
     it("should get exception if user has a pending request", async () => {
       const reason = "KYCRequests: user has a pending requests";
 
-      await kycRequests.requestKYCRole(kycHash, { from: USER1 });
+      await kycRequests.requestKYC(kycHash, { from: USER1 });
 
-      await truffleAssert.reverts(kycRequests.requestKYCRole(kycHash, { from: USER1 }), reason);
+      await truffleAssert.reverts(kycRequests.requestKYC(kycHash, { from: USER1 }), reason);
     });
   });
 
@@ -191,7 +195,7 @@ describe("KYCRequests", async () => {
     const kycHash = "some hash";
 
     it("should correctly drop the KYC request", async () => {
-      await kycRequests.requestKYCRole(kycHash, { from: USER1 });
+      await kycRequests.requestKYC(kycHash, { from: USER1 });
 
       const tx = await kycRequests.dropKYCRequest({ from: USER1 });
 
@@ -209,7 +213,7 @@ describe("KYCRequests", async () => {
     });
 
     it("should get exception if user has no pending request", async () => {
-      await kycRequests.requestKYCRole(kycHash, { from: USER1 });
+      await kycRequests.requestKYC(kycHash, { from: USER1 });
       await reviewableRequests.acceptRequest(0);
 
       const reason = "KYCRequests: user has no pending requests";

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
+import "@openzeppelin/contracts/utils/Strings.sol";
+
 import "@dlsl/dev-modules/contracts-registry/AbstractDependant.sol";
 import "@dlsl/dev-modules/libs/arrays/ArrayHelper.sol";
 
@@ -11,6 +13,8 @@ import "@tokene/core-contracts/core/ReviewableRequests.sol";
 import "../interfaces/kyc-requests/IKYCRequests.sol";
 
 contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
+    using Strings for uint256;
+
     string public constant UPDATE_PERMISSION = "UPDATE";
 
     string public constant KYC_REQUESTS_RESOURCE = "KYC_REQUESTS_RESOURCE";
@@ -32,7 +36,7 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
         _;
     }
 
-    function __KYCRequests_init(string calldata KYCRole_) external override initializer {
+    function __KYCRequests_init(string calldata KYCRole_) external initializer {
         _updateKYCRole(KYCRole_);
     }
 
@@ -47,7 +51,7 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
         _updateKYCRole(newKYCRole_);
     }
 
-    function requestKYCRole(string calldata KYCHash_) external override {
+    function requestKYC(string calldata KYCHash_) external override {
         UserRequestInfo storage requestInfo = usersRequestInfo[msg.sender];
 
         if (requestInfo.existingRequest) {
@@ -59,15 +63,22 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
             requestInfo.existingRequest = true;
         }
 
-        bytes memory data_ = abi.encodeWithSelector(
+        uint256 newRequestId_ = _reviewableRequests.nextRequestId();
+
+        bytes memory acceptData_ = abi.encodeWithSelector(
             _masterAccess.grantRoles.selector,
             msg.sender,
             ArrayHelper.asArray(KYCRole)
         );
+        string memory misc_ = uint256(uint160(msg.sender)).toHexString(20);
 
-        uint256 newRequestId_ = _reviewableRequests.nextRequestId();
-
-        _reviewableRequests.createRequest(address(_masterAccess), data_, "", KYCHash_);
+        _reviewableRequests.createRequest(
+            address(_masterAccess),
+            acceptData_,
+            "",
+            misc_,
+            KYCHash_
+        );
 
         requestInfo.requestId = newRequestId_;
 
@@ -97,9 +108,8 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
     }
 
     function _isPendingReqest(uint256 requestId_) internal view returns (bool) {
-        (IReviewableRequests.RequestStatus requestStatus_, , , , ) = _reviewableRequests.requests(
-            requestId_
-        );
+        (IReviewableRequests.RequestStatus requestStatus_, , , , , ) = _reviewableRequests
+            .requests(requestId_);
 
         return requestStatus_ == IReviewableRequests.RequestStatus.PENDING;
     }

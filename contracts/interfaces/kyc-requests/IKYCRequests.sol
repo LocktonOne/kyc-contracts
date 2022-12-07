@@ -34,12 +34,6 @@ interface IKYCRequests {
     event KYCRequestDropped(address userAddr, uint256 requestId);
 
     /**
-     * @notice The function for initializing KYC role variable
-     * @param KYCRole_ the new KYC role string
-     */
-    function __KYCRequests_init(string calldata KYCRole_) external;
-
-    /**
      * @notice The function to update the KYC role
      * @param newKYCRole_ the new KYC role string
      */
@@ -49,7 +43,7 @@ interface IKYCRequests {
      * @notice The function for creating a request for KYC role
      * @param KYCHash_ the string with information about user's KYC (probably file hash from IPFS)
      */
-    function requestKYCRole(string calldata KYCHash_) external;
+    function requestKYC(string calldata KYCHash_) external;
 
     /**
      * @notice The function to cancel the request for KYC role
