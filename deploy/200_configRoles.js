@@ -1,4 +1,3 @@
-const { logTransaction } = require("@dlsl/hardhat-migrate");
 const {
   RBAC_CREATOR,
   REVIEWABLE_REQUESTS_CREATOR,
@@ -13,7 +12,7 @@ const {
 const Registry = artifacts.require("MasterContractsRegistry");
 const MasterAccessManagement = artifacts.require("MasterAccessManagement");
 
-module.exports = async (deployer) => {
+module.exports = async (deployer, logger) => {
   const registry = await Registry.at(deployer.masterContractsRegistry);
   const masterAccess = await MasterAccessManagement.at(await registry.getMasterAccessManagement());
 
@@ -24,27 +23,27 @@ module.exports = async (deployer) => {
   const ReviewableRequestsCreate = [REVIEWABLE_REQUESTS_RESOURCE, [CREATE_PERMISSION]];
   const ReviewableRequestsDelete = [REVIEWABLE_REQUESTS_RESOURCE, [DELETE_PERMISSION]];
 
-  logTransaction(
+  logger.logTransaction(
     await masterAccess.addPermissionsToRole(RBAC_CREATOR, [RBACCreate], true),
     `Added ${CREATE_PERMISSION} permission to ${RBAC_CREATOR} role`
   );
 
-  logTransaction(
+  logger.logTransaction(
     await masterAccess.addPermissionsToRole(REVIEWABLE_REQUESTS_CREATOR, [ReviewableRequestsCreate], true),
     `Added ${CREATE_PERMISSION} permission to ${REVIEWABLE_REQUESTS_CREATOR} role`
   );
 
-  logTransaction(
+  logger.logTransaction(
     await masterAccess.addPermissionsToRole(REVIEWABLE_REQUESTS_REMOVER, [ReviewableRequestsDelete], true),
     `Added ${DELETE_PERMISSION} permission to ${REVIEWABLE_REQUESTS_REMOVER} role`
   );
 
-  logTransaction(
+  logger.logTransaction(
     await masterAccess.grantRoles(reviewableRequestsAddress, [RBAC_CREATOR]),
     `Granted ${RBAC_CREATOR} role to ReviewableRequests contract`
   );
 
-  logTransaction(
+  logger.logTransaction(
     await masterAccess.grantRoles(kycRequestsAddress, [REVIEWABLE_REQUESTS_CREATOR, REVIEWABLE_REQUESTS_REMOVER]),
     `Granted ${REVIEWABLE_REQUESTS_CREATOR}, ${REVIEWABLE_REQUESTS_REMOVER} roles to KYCRequests contract`
   );

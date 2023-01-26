@@ -97,9 +97,9 @@ describe("KYCRequests", async () => {
     });
 
     it("should get exception if not an injector try to call set dependencies function", async () => {
-      const reason = "Dependant: Not an injector";
+      const reason = "Dependant: not an injector";
 
-      await truffleAssert.reverts(kycRequests.setDependencies(registry.address, { from: USER1 }), reason);
+      await truffleAssert.reverts(kycRequests.setDependencies(registry.address, "0x", { from: USER1 }), reason);
     });
   });
 
@@ -159,7 +159,7 @@ describe("KYCRequests", async () => {
 
       assert.equal((await reviewableRequests.requests(0)).status, RequestStatus.PENDING);
 
-      await reviewableRequests.rejectRequest(0);
+      await reviewableRequests.rejectRequest(0, "reason");
 
       assert.equal((await reviewableRequests.requests(0)).status, RequestStatus.REJECTED);
 

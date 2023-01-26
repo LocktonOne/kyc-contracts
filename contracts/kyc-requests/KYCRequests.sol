@@ -40,7 +40,7 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
         _updateKYCRole(KYCRole_);
     }
 
-    function setDependencies(address registryAddress_) public override dependant {
+    function setDependencies(address registryAddress_, bytes calldata) public override dependant {
         MasterContractsRegistry registry_ = MasterContractsRegistry(registryAddress_);
 
         _masterAccess = MasterAccessManagement(registry_.getMasterAccessManagement());
