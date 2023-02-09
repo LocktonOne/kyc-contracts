@@ -1,12 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-/**
- * @notice The KYCRequests contract is designed for any user to create a request
- * for a role that is defined in the contract in the variable KYCRole.
- *
- * The user also has the possibility to cancel his request with a certain function
- */
 interface IKYCRequests {
     struct UserRequestInfo {
         uint256 requestId;
@@ -35,32 +29,28 @@ interface IKYCRequests {
 
     /**
      * @notice The function to update the KYC role
+     * @dev Access: UPDATE permission
      * @param newKYCRole_ the new KYC role string
      */
     function updateKYCRole(string calldata newKYCRole_) external;
 
     /**
      * @notice The function for creating a request for KYC role
+     * @dev Access: any, one request per user
      * @param KYCHash_ the string with information about user's KYC (probably file hash from IPFS)
      */
     function requestKYC(string calldata KYCHash_) external;
 
     /**
      * @notice The function to cancel the request for KYC role
+     * @dev Access: any, the request creator
      */
     function dropKYCRequest() external;
 
     /**
-     * @notice The function to return the KYC role string
-     * @return the KYC role string
-     */
-    function KYCRole() external view returns (string memory);
-
-    /**
      * @notice The function for getting information about a request for a specific user
-     * @param userAddr_ the address of the user for whom you want to get information
-     * @return request id
-     * @return flag that shows if a request exists
+     * @param user_ the address of the user for whom you want to get information
+     * @return user request information
      */
-    function usersRequestInfo(address userAddr_) external view returns (uint256, bool);
+    function getUserRequestInfo(address user_) external view returns (UserRequestInfo memory);
 }

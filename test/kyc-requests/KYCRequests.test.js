@@ -126,13 +126,14 @@ describe("KYCRequests", async () => {
     const kycHash = "some hash";
 
     it("should correctly request KYC role", async () => {
-      let userRequestInfo = await kycRequests.usersRequestInfo(USER1);
+      let userRequestInfo = await kycRequests.getUserRequestInfo(USER1);
+
       assert.equal(userRequestInfo.requestId.toString(), 0);
       assert.equal(userRequestInfo.existingRequest, false);
 
       const tx = await kycRequests.requestKYC(kycHash, { from: USER1 });
 
-      userRequestInfo = await kycRequests.usersRequestInfo(USER1);
+      userRequestInfo = await kycRequests.getUserRequestInfo(USER1);
       assert.equal(userRequestInfo.requestId.toString(), 0);
       assert.equal(userRequestInfo.existingRequest, true);
 
@@ -183,7 +184,7 @@ describe("KYCRequests", async () => {
     });
 
     it("should get exception if user has a pending request", async () => {
-      const reason = "KYCRequests: user has a pending requests";
+      const reason = "KYCRequests: user has a pending request";
 
       await kycRequests.requestKYC(kycHash, { from: USER1 });
 
@@ -207,7 +208,7 @@ describe("KYCRequests", async () => {
     });
 
     it("should get exception if user has no request", async () => {
-      const reason = "KYCRequests: user has no request";
+      const reason = "KYCRequests: user has no requests";
 
       await truffleAssert.reverts(kycRequests.dropKYCRequest({ from: USER1 }), reason);
     });
