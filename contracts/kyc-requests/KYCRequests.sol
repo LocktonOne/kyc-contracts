@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "@dlsl/dev-modules/contracts-registry/AbstractDependant.sol";
-import "@dlsl/dev-modules/libs/arrays/ArrayHelper.sol";
+import "@dlsl/dev-modules/libs/utils/TypeCaster.sol";
 
 import "@tokene/core-contracts/core/MasterContractsRegistry.sol";
 import "@tokene/core-contracts/core/MasterAccessManagement.sol";
@@ -87,7 +87,7 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
         bytes memory acceptData_ = abi.encodeWithSelector(
             _masterAccess.grantRoles.selector,
             msg.sender,
-            ArrayHelper.asArray(KYCRole)
+            TypeCaster.asSingletonArray(KYCRole)
         );
         string memory misc_ = uint256(uint160(msg.sender)).toHexString(20);
 
