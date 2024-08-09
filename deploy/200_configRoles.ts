@@ -2,7 +2,7 @@ import { Deployer } from "@solarity/hardhat-migrate";
 
 import { IRBAC, MasterAccessManagement__factory, MasterContractsRegistry__factory } from "@/generated-types/ethers";
 
-import { getConfigJson } from "./config/config-parser";
+import { getConfigJsonFromVault } from "./config/config-getter";
 
 import {
   RBAC_CREATOR,
@@ -16,7 +16,7 @@ import {
 } from "./utils/constants";
 
 export = async (deployer: Deployer) => {
-  const config = await getConfigJson();
+  const config = await getConfigJsonFromVault();
 
   const registry = await deployer.deployed(MasterContractsRegistry__factory, config.addresses.MasterContractsRegistry);
 
