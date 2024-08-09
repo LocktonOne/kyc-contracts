@@ -1,34 +1,22 @@
 import "@nomicfoundation/hardhat-ethers";
+import "@nomicfoundation/hardhat-chai-matchers";
+
+import "@solarity/hardhat-markup";
 import "@solarity/hardhat-migrate";
 
 import "@typechain/hardhat";
 
+import "hardhat-contract-sizer";
+import "hardhat-gas-reporter";
+
+import "solidity-coverage";
+
 import "tsconfig-paths/register";
 
-import { HardhatUserConfig, subtask } from "hardhat/config";
+import { HardhatUserConfig } from "hardhat/config";
 
-import { TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD } from "hardhat/builtin-tasks/task-names";
-
-import path from "path";
 import * as dotenv from "dotenv";
 dotenv.config();
-
-const SOLC_VERSION = "0.8.17";
-
-subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, async (args: any, hre, runSuper) => {
-  if (args.solcVersion === SOLC_VERSION) {
-    const compilerPath = path.join(__dirname, "/node_modules/solc/soljson.js");
-
-    return {
-      compilerPath: compilerPath,
-      isSolcJs: true,
-      version: args.solcVersion,
-      longVersion: "",
-    };
-  }
-
-  return runSuper();
-});
 
 function privateKey() {
   return process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [];
@@ -36,34 +24,63 @@ function privateKey() {
 
 const config: HardhatUserConfig = {
   networks: {
+    hardhat: {
+      initialDate: "1970-01-01T00:00:00Z",
+    },
     dev: {
       url: `${process.env.DEV_RPC_ENDPOINT}`,
       accounts: privateKey(),
       gasMultiplier: 1.2,
     },
-  },
-  migrate: {
-    pathToMigrations: "./deploy/",
+    sepolia: {
+      url: `https://sepolia.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts: privateKey(),
+      gasMultiplier: 1.2,
+    },
+    chapel: {
+      url: "https://data-seed-prebsc-1-s1.binance.org:8545",
+      accounts: privateKey(),
+      gasMultiplier: 1.2,
+      timeout: 60000,
+    },
+    bsc: {
+      url: "https://bsc-dataseed.binance.org/",
+      accounts: privateKey(),
+      gasMultiplier: 1.2,
+    },
+    ethereum: {
+      url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts: privateKey(),
+      gasMultiplier: 1.2,
+    },
   },
   solidity: {
-    version: SOLC_VERSION,
+    version: "0.8.17",
     settings: {
       optimizer: {
         enabled: true,
         runs: 200,
       },
+      viaIR: true,
     },
   },
-  etherscan: {
-    apiKey: {
-      mainnet: `${process.env.ETHERSCAN_KEY}`,
-      sepolia: `${process.env.ETHERSCAN_KEY}`,
-      bsc: `${process.env.BSCSCAN_KEY}`,
-      bscTestnet: `${process.env.BSCSCAN_KEY}`,
-    },
+  migrate: {
+    pathToMigrations: "./deploy/",
+  },
+  markup: {
+    onlyFiles: ["./contracts"],
+  },
+  mocha: {
+    timeout: 1000000,
+  },
+  contractSizer: {
+    alphaSort: false,
+    disambiguatePaths: false,
+    runOnCompile: true,
+    strict: false,
   },
   typechain: {
-    outDir: "generated-types",
+    outDir: "generated-types/ethers",
     target: "ethers-v6",
     alwaysGenerateOverloads: true,
     discriminateTypes: true,
