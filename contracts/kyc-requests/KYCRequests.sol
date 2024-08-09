@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "@openzeppelin/contracts/utils/Strings.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import "@dlsl/dev-modules/contracts-registry/AbstractDependant.sol";
-import "@dlsl/dev-modules/libs/utils/TypeCaster.sol";
+import {AbstractDependant} from "@solarity/solidity-lib/contracts-registry/AbstractDependant.sol";
+import {TypeCaster} from "@solarity/solidity-lib/libs/utils/TypeCaster.sol";
 
-import "@tokene/core-contracts/core/MasterContractsRegistry.sol";
-import "@tokene/core-contracts/core/MasterAccessManagement.sol";
-import "@tokene/core-contracts/core/ReviewableRequests.sol";
+import {MasterContractsRegistry} from "@tokene/core-contracts/core/MasterContractsRegistry.sol";
+import {MasterAccessManagement} from "@tokene/core-contracts/core/MasterAccessManagement.sol";
+import {IReviewableRequests, ReviewableRequests} from "@tokene/core-contracts/core/ReviewableRequests.sol";
 
-import "../interfaces/kyc-requests/IKYCRequests.sol";
+import {IKYCRequests} from "../interfaces/kyc-requests/IKYCRequests.sol";
 
 /**
  * @notice The KYCRequests contract that enables KYC reviewable requests. The contract integrates with the
@@ -53,7 +54,7 @@ contract KYCRequests is IKYCRequests, AbstractDependant, Initializable {
      * @dev Access: the injector address
      * @param registryAddress_ the ContractsRegistry address
      */
-    function setDependencies(address registryAddress_, bytes calldata) public override dependant {
+    function setDependencies(address registryAddress_, bytes memory) public override dependant {
         MasterContractsRegistry registry_ = MasterContractsRegistry(registryAddress_);
 
         _masterAccess = MasterAccessManagement(registry_.getMasterAccessManagement());
